@@ -72,13 +72,13 @@ goto fail
 set WRAPPER_JAR=%APP_HOME%\gradle\wrapper\gradle-wrapper.jar
 if not exist "%WRAPPER_JAR%" (
     if not exist "%APP_HOME%\gradle\wrapper" mkdir "%APP_HOME%\gradle\wrapper"
-    certutil -decode "%WRAPPER_JAR%.base64" "%WRAPPER_JAR%" >NUL
+    powershell -Command "Invoke-WebRequest -UseBasicParsing -Uri https://raw.githubusercontent.com/gradle/gradle/v8.7.0/gradle/wrapper/gradle-wrapper.jar -OutFile '%WRAPPER_JAR%'" || goto fail
 )
-set CLASSPATH=
+set CLASSPATH=%APP_HOME%\gradle\wrapper\gradle-wrapper.jar
 
 
 @rem Execute Gradle
-"%JAVA_EXE%" %DEFAULT_JVM_OPTS% %JAVA_OPTS% %GRADLE_OPTS% "-Dorg.gradle.appname=%APP_BASE_NAME%" -classpath "%CLASSPATH%" -jar "%APP_HOME%\gradle\wrapper\gradle-wrapper.jar" %*
+"%JAVA_EXE%" %DEFAULT_JVM_OPTS% %JAVA_OPTS% %GRADLE_OPTS% "-Dorg.gradle.appname=%APP_BASE_NAME%" -classpath "%CLASSPATH%" org.gradle.wrapper.GradleWrapperMain %*
 
 :end
 @rem End local scope for the variables with windows NT shell

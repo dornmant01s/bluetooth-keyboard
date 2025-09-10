@@ -116,12 +116,18 @@ esac
 
 WRAPPER_JAR="$APP_HOME/gradle/wrapper/gradle-wrapper.jar"
 if [ ! -f "$WRAPPER_JAR" ]; then
-    BASE64_JAR="$APP_HOME/gradle/wrapper/gradle-wrapper.jar.base64"
     mkdir -p "$(dirname "$WRAPPER_JAR")"
-    base64 -d "$BASE64_JAR" > "$WRAPPER_JAR"
+    JAR_URL="https://raw.githubusercontent.com/gradle/gradle/v8.7.0/gradle/wrapper/gradle-wrapper.jar"
+    if command -v curl >/dev/null 2>&1; then
+        curl -fsSL "$JAR_URL" -o "$WRAPPER_JAR"
+    elif command -v wget >/dev/null 2>&1; then
+        wget -q "$JAR_URL" -O "$WRAPPER_JAR"
+    else
+        die "ERROR: Unable to download Gradle wrapper. Please install curl or wget."
+    fi
 fi
 
-CLASSPATH="\\\"\\\""
+CLASSPATH="$APP_HOME/gradle/wrapper/gradle-wrapper.jar"
 
 
 # Determine the Java command to use to start the JVM.
@@ -220,7 +226,7 @@ DEFAULT_JVM_OPTS='"-Xmx64m" "-Xms64m"'
 set -- \
         "-Dorg.gradle.appname=$APP_BASE_NAME" \
         -classpath "$CLASSPATH" \
-        -jar "$APP_HOME/gradle/wrapper/gradle-wrapper.jar" \
+        org.gradle.wrapper.GradleWrapperMain \
         "$@"
 
 # Stop when "xargs" is not available.
