@@ -1,0 +1,12 @@
+    <resources>
+      <string name="app_name">ChannelKeyLauncher</string>
+      <string name="accessibility_desc">블루투스 키보드 숫자로 앱을 여는 서비스</string>
+      <string name="instruction">설정 방법:
+1) 접근성에서 "ChannelKeyLauncher" 활성화
+2) 채널 번호와 앱을 매핑
+3) 키보드로 숫자→Enter 없이 자동 실행
+(+1/−1 키도 설정 가능)</string>
+      <string name="btn_random">랜덤 매핑</string>
+  <string name="toast_random_done">설치된 앱을 무작위 채널에 매핑했어요</string>
+</resources>
+
