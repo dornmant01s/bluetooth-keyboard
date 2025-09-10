@@ -5,12 +5,12 @@ plugins {
 
 android {
     namespace = "com.example.channelremote"
-    compileSdk = 35
+    compileSdk = 34
 
     defaultConfig {
         applicationId = "com.example.channelremote"
         minSdk = 26
-        targetSdk = 35
+        targetSdk = 34
         versionCode = 1
         versionName = "1.0"
     }
