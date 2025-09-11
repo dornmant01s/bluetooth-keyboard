@@ -21,9 +21,9 @@ class MainActivity : AppCompatActivity() {
     private lateinit var list: RecyclerView
     private lateinit var btnAdd: MaterialButton
     private lateinit var btnSetInc: MaterialButton
-        private lateinit var btnRandom: MaterialButton
-        private lateinit var btnClear: MaterialButton
     private lateinit var btnSetDec: MaterialButton
+    private lateinit var btnRandom: MaterialButton
+    private lateinit var btnClear: MaterialButton
     private lateinit var txtKeys: TextView
 
     private var map = mutableMapOf<Int, String>()
@@ -47,9 +47,9 @@ class MainActivity : AppCompatActivity() {
         list = findViewById(R.id.list)
         btnAdd = findViewById(R.id.btnAdd)
         btnSetInc = findViewById(R.id.btnSetInc)
-            btnRandom = findViewById(R.id.btnRandom)
-            btnClear = findViewById(R.id.btnClear)
         btnSetDec = findViewById(R.id.btnSetDec)
+        btnRandom = findViewById(R.id.btnRandom)
+        btnClear = findViewById(R.id.btnClear)
         txtKeys = findViewById(R.id.txtKeys)
 
         map = Prefs.loadMap(this)
@@ -62,7 +62,9 @@ class MainActivity : AppCompatActivity() {
         list.layoutManager = LinearLayoutManager(this)
         list.adapter = adapter
         refresh()
+        showKeys()
 
+        // 채널 추가
         btnAdd.setOnClickListener {
             val input = EditText(this).apply { hint = "채널 번호(정수)" }
             androidx.appcompat.app.AlertDialog.Builder(this)
@@ -70,119 +72,79 @@ class MainActivity : AppCompatActivity() {
                 .setView(input)
                 .setPositiveButton("앱 선택") { _, _ ->
                     val ch = input.text.toString().toIntOrNull()
-                    if (ch == null) { Toast.makeText(this, "숫자 입력", Toast.LENGTH_SHORT).show(); return@setPositiveButton }
+                    if (ch == null) {
+                        Toast.makeText(this, "숫자 입력", Toast.LENGTH_SHORT).show()
+                        return@setPositiveButton
+                    }
                     val i = Intent(this, AppPickerActivity::class.java)
                     i.putExtra("channel", ch)
                     pickApp.launch(i)
                 }.setNegativeButton("취소", null).show()
         }
 
+        // +1 / -1 키 지정
         btnSetInc.setOnClickListener { captureKey { code ->
             Prefs.setIncKey(this, code); showKeys()
-
-            if (map.isEmpty()) { randomizeMapping() }
-
-btnRandom.setOnClickListener {
-    randomizeMapping()
-    Toast.makeText(this, getString(R.string.toast_random_done), Toast.LENGTH_SHORT).show()
-}
-btnClear.setOnClickListener {
-    map.clear()
-    Prefs.saveMap(this, map)
-    refresh()
-    Toast.makeText(this, "채널 매핑 초기화", Toast.LENGTH_SHORT).show()
-}
-
             Toast.makeText(this, "+1 키 설정 완료", Toast.LENGTH_SHORT).show()
         } }
-
         btnSetDec.setOnClickListener { captureKey { code ->
             Prefs.setDecKey(this, code); showKeys()
-
-            if (map.isEmpty()) { randomizeMapping() }
-
-btnRandom.setOnClickListener {
-    randomizeMapping()
-    Toast.makeText(this, getString(R.string.toast_random_done), Toast.LENGTH_SHORT).show()
-}
-btnClear.setOnClickListener {
-    map.clear()
-    Prefs.saveMap(this, map)
-    refresh()
-    Toast.makeText(this, "채널 매핑 초기화", Toast.LENGTH_SHORT).show()
-}
-
             Toast.makeText(this, "−1 키 설정 완료", Toast.LENGTH_SHORT).show()
         } }
 
-        showKeys()
+        // 랜덤 매핑 / 초기화
+        btnRandom.setOnClickListener {
+            randomizeMapping()
+            Toast.makeText(this, getString(R.string.toast_random_done), Toast.LENGTH_SHORT).show()
+        }
+        btnClear.setOnClickListener {
+            map.clear()
+            Prefs.saveMap(this, map)
+            refresh()
+            Toast.makeText(this, "채널 매핑 초기화", Toast.LENGTH_SHORT).show()
+        }
 
-            if (map.isEmpty()) { randomizeMapping() }
-
-btnRandom.setOnClickListener {
-    randomizeMapping()
-    Toast.makeText(this, getString(R.string.toast_random_done), Toast.LENGTH_SHORT).show()
-}
-btnClear.setOnClickListener {
-    map.clear()
-    Prefs.saveMap(this, map)
-    refresh()
-    Toast.makeText(this, "채널 매핑 초기화", Toast.LENGTH_SHORT).show()
-}
-
+        // 처음 비어있으면 자동 랜덤 매핑
+        if (map.isEmpty()) {
+            randomizeMapping()
+        }
     }
 
-    private fun showKeys()
-
-            if (map.isEmpty()) { randomizeMapping() }
-
-btnRandom.setOnClickListener {
-    randomizeMapping()
-    Toast.makeText(this, getString(R.string.toast_random_done), Toast.LENGTH_SHORT).show()
-}
-btnClear.setOnClickListener {
-    map.clear()
-    Prefs.saveMap(this, map)
-    refresh()
-    Toast.makeText(this, "채널 매핑 초기화", Toast.LENGTH_SHORT).show()
-}
- {
-        txtKeys.text = "현재: +1=" + Prefs.getIncKey(this) + " / −1=" + Prefs.getDecKey(this)
+    private fun showKeys() {
+        txtKeys.text = "현재: +1=${Prefs.getIncKey(this)} / −1=${Prefs.getDecKey(this)}"
     }
 
     private fun refresh() {
         (list.adapter as ChannelAdapter).submitList(map.keys.sorted())
     }
 
-    
-
-private fun randomizeMapping() {
-    val pm = packageManager
-    val main = Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_LAUNCHER)
-    val apps = pm.queryIntentActivities(main, 0).toMutableList()
-    apps.shuffle()
-    map.clear()
-    var ch = 1
-    for (ri in apps) {
-        map[ch++] = ri.activityInfo.packageName
-    }
-    Prefs.saveMap(this, map)
-    refresh()
-}
-private fun captureKey(onPick: (Int) -> Unit) {
+    private fun captureKey(onPick: (Int) -> Unit) {
         Toast.makeText(this, "키보드에서 원하는 키를 누르세요", Toast.LENGTH_SHORT).show()
-        val originalCallback = window.callback
-        window.callback = object : android.view.Window.Callback by originalCallback {
+        val original = window.callback
+        window.callback = object : android.view.Window.Callback by original {
             override fun dispatchKeyEvent(event: KeyEvent): Boolean {
                 if (event.action == KeyEvent.ACTION_DOWN) {
                     onPick(event.keyCode)
-                    // 복구
-                    window.callback = originalCallback
+                    window.callback = original // 복구
                     return true
                 }
-                return originalCallback.dispatchKeyEvent(event)
+                return original.dispatchKeyEvent(event)
             }
         }
+    }
+
+    private fun randomizeMapping() {
+        val pm = packageManager
+        val main = Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_LAUNCHER)
+        val apps = pm.queryIntentActivities(main, 0).toMutableList()
+        apps.shuffle()
+        map.clear()
+        var ch = 1
+        for (ri in apps) {
+            map[ch++] = ri.activityInfo.packageName
+        }
+        Prefs.saveMap(this, map)
+        refresh()
     }
 
     private class ChannelAdapter(val onDelete: (Int) -> Unit) :
@@ -190,12 +152,10 @@ private fun captureKey(onPick: (Int) -> Unit) {
             override fun areItemsTheSame(oldItem: Int, newItem: Int) = oldItem == newItem
             override fun areContentsTheSame(oldItem: Int, newItem: Int) = oldItem == newItem
         }) {
-
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): VH {
             val v = LayoutInflater.from(parent.context).inflate(android.R.layout.simple_list_item_2, parent, false)
             return VH(v as ViewGroup, onDelete)
         }
-
         override fun onBindViewHolder(holder: VH, position: Int) {
             holder.bind(getItem(position))
         }
